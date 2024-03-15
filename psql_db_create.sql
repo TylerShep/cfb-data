@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS d_game_drives
+(   id                  BIGINT PRIMARY KEY,
+    offense             VARCHAR(250),
+    defense             VARCHAR(250),
+    game_id             INTEGER,
+    drive_number        INTEGER,
+    scoring             BOOLEAN,
+    start_period        INTEGER,
+    start_yardline      INTEGER,
+    start_yards_to_goal INTEGER,
+    end_period          INTEGER,
+    end_yardline        INTEGER,
+    end_yards_to_goal   INTEGER,
+    plays               INTEGER,
+    yards               INTEGER,
+    drive_result        VARCHAR(100),
+    is_home_offense     BOOLEAN,
+    start_offense_score INTEGER,
+    start_defense_score INTEGER,
+    end_offense_score   INTEGER,
+    end_defense_score   INTEGER,
+    updated_on        TIMESTAMP,
+    FOREIGN KEY (game_id) REFERENCES d_games(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS d_plays
+(   id               BIGINT PRIMARY KEY,
+    drive_id         BIGINT,
+    game_id          BIGINT,
+    drive_number     INT,
+    play_number      INT,
+    offense          VARCHAR(250),
+    offense_score    INT,
+    defense          VARCHAR(250),
+    defense_score    INT,
+    period           INT,
+    clock_minutes    INT,
+    clock_seconds    INT,
+    yard_line        INT,
+    yards_to_goal    INT,
+    down             INT,
+    distance         INT,
+    yards_gained     INT,
+    scoring          BOOLEAN,
+    play_type        VARCHAR(250),
+    play_text        TEXT,
+    ppa              NUMERIC,
+    updated_on       TIMESTAMP,
+    FOREIGN KEY (drive_id) REFERENCES d_game_drives(id)
+    FOREIGN KEY (game_id) REFERENCES d_games(id)
+);
