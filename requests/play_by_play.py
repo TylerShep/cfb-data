@@ -20,5 +20,6 @@ for week in weeks:
 
   data = RetrieverService.getConnection(endpoint, params)
   df_plays = GamesTransform.responseToDataframe(data)
-  df_plays = df_plays.drop(['offense_conference', 'defense_conference', 'clock'], axis=1)
-  PusherService.pushToPostgres(df_plays, 'd_plays')     
+  df = df_plays.drop(['offense_conference', 'defense_conference', 'home', 'away', 'clock', 'wallclock','offense_timeouts', 'defense_timeouts'], axis=1)
+  df['play_text'] = df['play_text'].fillna('')
+  PusherService.pushToPostgres(df, 'd_plays')     
