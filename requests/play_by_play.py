@@ -15,7 +15,7 @@ for week in weeks:
   endpoint = 'plays'
   params =    {"seasonType": "both",
               "year": 2023,
-              "week":1,
+              "week":week,
               "classification": "fbs"}
 
   data = RetrieverService.getConnection(endpoint, params)
