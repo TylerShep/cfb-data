@@ -33,3 +33,7 @@ class RetrieverService():
         RetrieverService.checkResponseStatus(response)
 
         return response.json()
+
+    @classmethod
+    def getPostgresConnection(cls, endpoint, params):
+        pass

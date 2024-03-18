@@ -6,7 +6,7 @@ import pandas as pd
 # PostgresConnect
 class PusherService():
 
-    def getConnection(self):
+    def getPostgresConnection(self):
         conn = psycopg2.connect(
             dbname='cfb_db',
             user='cfb',
@@ -17,8 +17,8 @@ class PusherService():
 
         return conn
 
-    def correctNullValuesPostgres(df, table_name):
-        conn = PusherService.getConnection()
+    def cleansePostgresData(df, table_name):
+        conn = PusherService.getPostgresConnection()
         cursor = conn.cursor()
 
         for col in df.columns:
@@ -36,7 +36,7 @@ class PusherService():
             'datetime64[ns]': 'timestamp',
             'float64': 'numeric'}
 
-        conn = PusherService.getConnection()
+        conn = PusherService.getPostgresConnection()
         cursor = conn.cursor()
 
         columns = ', '.join([col + ' ' + PG_TYPE_MAPPING.get(df[col].dtype.name, df[col].dtype.name) for col in df])
@@ -50,7 +50,7 @@ class PusherService():
         return table_name
 
     def pushToPostgres(df, table_name):
-        conn = PusherService.getConnection()
+        conn = PusherService.getPostgresConnection()
         cursor = conn.cursor()
 
         for index, row in df.iterrows():
@@ -67,3 +67,7 @@ class PusherService():
 
         cursor.close()
         conn.close()
+
+    @classmethod
+    def cleanseData(cls, df, table_name):
+        pass
