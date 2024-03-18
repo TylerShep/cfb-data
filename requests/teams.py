@@ -3,12 +3,11 @@ from data_pusher_service.postgres_service import PusherService
 from data_transformer_service.service import DataTransform
 
 
-endpoint = 'teams'
-params = {}
-
 class TeamsRequestService():
 
     def GetTeamsData(self):
+        endpoint = 'teams'
+        params = {}
 
         data = RetrieverService.getPostgresConnection(endpoint, params)
         df = DataTransform.dataframeTransform(data)
