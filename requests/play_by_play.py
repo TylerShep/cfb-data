@@ -1,7 +1,7 @@
 from data_retriever_service.service import RetrieverService
 from data_pusher_service.postgres_service import PusherService
-from data_transformer_service.service import DataTransform
-import pandas as pd
+from data_transformer_service.service import TransformService
+
 
 class PlayByPlayRequestService():
 
@@ -15,7 +15,7 @@ class PlayByPlayRequestService():
                       "classification": "fbs"}
 
             data = RetrieverService.getPostgresConnection(endpoint, params)
-            df = DataTransform.dataframeTransform(data)
+            df = TransformService.dataframeTransform(data)
             table_name = PusherService.createPostgresTable(df, endpoint)
 
             PusherService.pushToPostgres(df, table_name)
