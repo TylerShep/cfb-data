@@ -30,15 +30,16 @@ class PusherService():
                 cursor.execute(update_query)
                 conn.commit()
 
-    def createPostgresTable(df: pd.DataFrame, table_name: str):
+    def createPostgresTable(df: pd.DataFrame, endpoint: str):
         PG_TYPE_MAPPING = {
             'int64': 'integer',
             'datetime64[ns]': 'timestamp',
             'float64': 'numeric'}
 
-        conn = PusherService.getPostgresConnection()
+        conn = PusherService.getConnection()
         cursor = conn.cursor()
 
+        table_name = endpoint.replace('/', '_')
         columns = ', '.join([col + ' ' + PG_TYPE_MAPPING.get(df[col].dtype.name, df[col].dtype.name) for col in df])
         columns = columns.replace("object", "text")
         create_table_query = f"CREATE TABLE IF NOT EXISTS d_{table_name} ({columns}, updated_on timestamp);"
@@ -50,17 +51,18 @@ class PusherService():
         return table_name
 
     def pushToPostgres(df, table_name):
-        conn = PusherService.getPostgresConnection()
+        conn = PusherService.getConnection()
         cursor = conn.cursor()
 
         for index, row in df.iterrows():
+            row_nan_mask = np.vectorize(lambda x: np.isnan(x) if np.issubdtype(type(x), np.number) else False)(row)
+            row_data = row.where(~row_nan_mask, None)
             columns = ', '.join(row.index)
-            values = ', '.join(['%s'] * len(row))
-            placeholders = ', '.join(['%s'] * len(row))
-            row_data = [None if pd.isna(value) else value for value in row]
+            # values = ', '.join(['%s'] * len(row_data))
+            placeholders = ', '.join(['%s'] * len(row_data))
 
             query = f"INSERT INTO {table_name} ({columns}, updated_on) VALUES ({placeholders}, %s)"
-            data = list(row.values) + [datetime.datetime.now()]
+            data = tuple(row_data.tolist()) + (datetime.datetime.now(),)
 
             cursor.execute(query, data)
             conn.commit()
