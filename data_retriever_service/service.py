@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import requests
 
@@ -9,7 +10,7 @@ class RetrieverService():
 
     @staticmethod
     def getCredentials():
-        api_key = 'hVFynv7js27zWixTLvVmLR2u3AetgpOeqbx7Sa/B1RCAij1wcDQkCSIBHcfwFZi1'
+        api_key = os.environ['CFBD_DATA_API_KEY']
 
         return api_key
 
