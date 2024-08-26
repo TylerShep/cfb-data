@@ -1,7 +1,7 @@
 # COLLEGE FOOTBALL DATA PIPELINE
 This is a dynamic data pipeline for accessing all sorts of data from CollegeFootballData.com's API. API keys can be acquired for FREE from the CollegeFootballData.com website.  
 
-Version: v.1.0.4
+Version: v.1.0.10
 
 Author: [Tyler Shepherd](https://github.com/TylerShep)   
 
