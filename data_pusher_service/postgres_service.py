@@ -1,5 +1,6 @@
 import datetime
 import psycopg2
+import os
 import pandas as pd
 
 
@@ -8,11 +9,11 @@ class PusherService():
 
     def getPostgresConnection(self):
         conn = psycopg2.connect(
-            dbname='cfb_db',
-            user='cfb',
-            password='cs1400SUCKS!',
-            host='dfb-db.cb4e0eyekomu.us-east-1.rds.amazonaws.com',
-            port=5432
+            dbname= os.environ['DB_NAME'],
+            user= os.environ['DB_USER'],
+            password= os.environ['DB_PASSWORD'],
+            host= os.environ['DB_HOST'],
+            port= 5432
         )
 
         return conn
