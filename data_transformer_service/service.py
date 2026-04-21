@@ -1,48 +1,65 @@
+"""Transformations from raw CFBD JSON into tidy pandas DataFrames.
+
+The CFBD API returns nested dict structures in fields like ``home`` / ``away`` /
+``offense``. ``TransformService`` flattens those into columnar form suitable
+for insertion into a relational database.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
 import pandas as pd
 
 
-class TransformService():
+class TransformService:
+    """Flatten nested CFBD API responses into pandas DataFrames."""
 
-  def responseToDataframe(response):
-    if isinstance(response, list):
-      df = pd.DataFrame(response)
-      df = df.iloc[1:]
+    @staticmethod
+    def response_to_dataframe(response: list[dict[str, Any]] | dict[str, Any]) -> pd.DataFrame:
+        """Normalize the CFBD API response into a DataFrame."""
+        if isinstance(response, list):
+            return pd.DataFrame(response)
+        return pd.json_normalize(response)
 
-    else:
-      df = pd.read_json(response)
+    @staticmethod
+    def _has_dict_columns(df: pd.DataFrame) -> bool:
+        return any(df[col].apply(lambda x: isinstance(x, dict)).any() for col in df.columns)
 
-    return df
+    @staticmethod
+    def break_out_dict_columns(df: pd.DataFrame) -> pd.DataFrame:
+        """Expand any column whose first value is a dict into ``col_key`` columns."""
+        dict_columns = [
+            col for col in df.columns if df[col].apply(lambda x: isinstance(x, dict)).any()
+        ]
+        for col in dict_columns:
+            expanded = (
+                df[col]
+                .apply(lambda x: pd.Series(x) if isinstance(x, dict) else pd.Series(dtype=object))
+                .add_prefix(f"{col}_")
+            )
+            df = pd.concat([df.drop(columns=[col]), expanded], axis=1)
+        return df
 
-  def breakOutListColumns(df: pd.DataFrame) -> pd.DataFrame:
-    dict_columns = [col for col in df.columns if type(df[col].iloc[0]) is dict]
-    dtypes = {col: df[col].dtype for col in dict_columns}
+    @classmethod
+    def flatten_all(cls, df: pd.DataFrame, max_passes: int = 10) -> pd.DataFrame:
+        """Recursively break out dict columns until none remain (or ``max_passes`` hit)."""
+        for _ in range(max_passes):
+            if not cls._has_dict_columns(df):
+                break
+            df = cls.break_out_dict_columns(df)
+        return df
 
-    for col in dict_columns:
-      df_expanded = df[col].apply(lambda x: pd.Series(x, dtype=dtypes[col])).add_prefix(f'{col}_')
-      df = pd.concat([df, df_expanded], axis=1)
-      df = df.drop(col, axis=1)
+    @staticmethod
+    def strip_trailing_zero_suffix(df: pd.DataFrame) -> pd.DataFrame:
+        """Remove a trailing ``_0`` on any column name (artifact of flattening)."""
+        df = df.rename(columns={c: c[:-2] for c in df.columns if c.endswith("_0")})
+        return df
 
-    return df
-
-  def breakOutAllListColumns(df: pd.DataFrame) -> pd.DataFrame:
-    while True:
-      df_expanded = TransformService.breakOutListColumns(df)
-      if not any([col for col in df.columns if type(df[col].iloc[0]) is dict]):
-        break
-      df = df_expanded
-
-    return df_expanded
-
-  def remove_suffix_if_exists(df):
-    suffix = '_0'
-    cols = df.columns
-    df.columns = [col.rstrip(suffix) if col.endswith(suffix) else col for col in cols]
-
-    return df
-
-  def dataframeTransform(response):
-    df = TransformService.responseToDataframe(response)
-    df_breakout = TransformService.breakOutAllListColumns(df)
-    df_col_cleanup = TransformService.remove_suffix_if_exists(df_breakout)
-
-    return df_col_cleanup
+    @classmethod
+    def transform(cls, response: list[dict[str, Any]] | dict[str, Any]) -> pd.DataFrame:
+        """End-to-end: JSON response -> tidy DataFrame."""
+        df = cls.response_to_dataframe(response)
+        df = cls.flatten_all(df)
+        df = cls.strip_trailing_zero_suffix(df)
+        return df

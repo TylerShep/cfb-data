@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cfb-data"
+version = "0.2.0"
+description = "Dynamic ETL pipeline from the CollegeFootballData.com REST API to PostgreSQL."
+authors = [{name = "Tyler Shepherd"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26,<3.0",
+    "pandas>=2.1,<3.0",
+    "psycopg2-binary>=2.9,<3.0",
+    "requests>=2.33.1,<3.0",
+]
+
+[tool.setuptools]
+packages = [
+    "data_retriever_service",
+    "data_transformer_service",
+    "data_pusher_service",
+    "endpoints",
+    "request_manager",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.3,<10.0",
+    "ruff>=0.4,<1.0",
+    "responses>=0.25,<1.0",
+]
+
+[project.scripts]
+cfb-data = "request_manager.manager:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "SIM", # simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"

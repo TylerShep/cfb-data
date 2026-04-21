@@ -1,6 +1,4 @@
-datetime
-numpy
-os
-pandas
-psycopg2
-requests
+numpy>=1.26,<3.0
+pandas>=2.1,<3.0
+psycopg2-binary>=2.9,<3.0
+requests>=2.33.1,<3.0
